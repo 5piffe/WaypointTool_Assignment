@@ -1,13 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class WaypointManager : MonoBehaviour
 {
-    public List<GameObject> waypoints = new List<GameObject>(); // Ändrade här till GameObject från transform (och alla references)
-    [System.NonSerialized] public /*Transform*/GameObject targetWaypoint; // Samma här ändrade från transform till GameObject osv..
+    public List<GameObject> waypoints = new List<GameObject>();
+	[System.NonSerialized] public GameObject targetWaypoint;
     [System.NonSerialized] public int targetWaypointIndex = 0;
-	private int spawnPointMove;
+	[System.NonSerialized] public Vector3 spawnPos;
+	private int spawnOffset = 1;
 
 	private void Start()
 	{
@@ -16,12 +19,12 @@ public class WaypointManager : MonoBehaviour
 
 	public void SetNextTarget()
 	{
-		// Traverse through the list, loop back
+		// Traverse through the list, loop, make just the mirrored version for pingpong.
 		if (targetWaypointIndex < waypoints.Count)
 		{
 			targetWaypoint = waypoints[targetWaypointIndex];
 		}
-		else
+		else if (waypoints.Count > 0)
 		{
 			targetWaypointIndex = targetWaypointIndex - waypoints.Count;
 			targetWaypoint = waypoints[targetWaypointIndex];
@@ -32,17 +35,33 @@ public class WaypointManager : MonoBehaviour
 	{
 		waypoints.Add(newWP);
 		newWP.tag = "Waypoint";
+
+		if (waypoints.Count < 2)
+		{
+			newWP.transform.position = transform.position;
+		}
+		else
+		{
+			newWP.transform.position = new Vector3(spawnPos.x, spawnPos.y, spawnPos.z + spawnOffset);
+			
+		}
+
 		newWP.transform.parent = transform;
-		newWP.transform.localPosition = new Vector3(transform.position.x, transform.position.y, spawnPointMove);
-		spawnPointMove = 0 + waypoints.Count;
 	}
 
 	public void RemoveLastWaypoint()
 	{
 		if (waypoints.Count > 0)
 		{
+			DestroyImmediate(waypoints.Last<GameObject>());
 			waypoints.RemoveAt(waypoints.Count - 1);
-			spawnPointMove--;
+
+			spawnPos = new Vector3(spawnPos.x, spawnPos.y, spawnPos.z - spawnOffset);
+
+			if (targetWaypoint == null)
+			{
+				SetNextTarget();
+			}
 		}
 		else
 		{
