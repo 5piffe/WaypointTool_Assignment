@@ -1,13 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
-using UnityEditor.EditorTools;
+﻿using UnityEditor;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 
-
-public class WaypointTool : EditorWindow // är ett window
+public class WaypointTool : EditorWindow
 {
 	private WaypointManager wpManager;
 	private PatrolMovement traverseObject;
@@ -19,54 +13,34 @@ public class WaypointTool : EditorWindow // är ett window
 	private Color wpColor = Color.cyan;
 	private Color pathColor = Color.yellow;
 
-
     [MenuItem("Tools/Waypoint Tool")]
-    public static void OpenTool()
-	{
-		GetWindow<WaypointTool>("Waypoint tool"); // opens a windows if there's none, focuses on window if you opened it already
-	}
+    public static void OpenTool() => GetWindow<WaypointTool>("Waypoint tool");
+	private void OnEnable() => SceneView.duringSceneGui += DuringSceneGUI;
+	private void OnDisable() => SceneView.duringSceneGui -= DuringSceneGUI;
 
-	private void OnEnable()
-	{
-		SceneView.duringSceneGui += DuringSceneGUI;
-	}
-
-	private void OnDisable()
-	{
-		SceneView.duringSceneGui -= DuringSceneGUI;
-	}
-
-	private void OnGUI() // GUI stuff för window
+	private void OnGUI()
 	{
 		GUILayout.Label("[Add or remove waypoints]");
 		wpManager = FindObjectOfType<WaypointManager>();
 		traverseObject = FindObjectOfType<PatrolMovement>();
 		
 		if (GUILayout.Button("Add +"))
-		{
-			wpManager.AddNewWaypoint();
-		}
+		{ wpManager.AddNewWaypoint(); }
 
 		if (GUILayout.Button("Remove -"))
-		{
-			wpManager.RemoveLastWaypoint();
-		}
+		{ wpManager.RemoveLastWaypoint(); }
 		
 		GUILayout.Label("\n[Other settings]");
 		wpColor = EditorGUILayout.ColorField("Circle color", wpColor);
 		waypointCircleRadius = EditorGUILayout.Slider("Circle radius", waypointCircleRadius, minCircleRadius, maxCircleRadius);
 		pathColor = EditorGUILayout.ColorField("Path color", pathColor);
 		hideWaypoints = EditorGUILayout.Toggle("Hide waypoints", hideWaypoints);
-
 	}
 
-
-	private void DuringSceneGUI(SceneView sceneView) // updates
+	private void DuringSceneGUI(SceneView sceneView)
 	{
 		if (!hideWaypoints)
-		{
-			DrawWaypoints();
-		}
+		{ DrawWaypoints(); }
 	}
 
 	private void DrawWaypoints()
@@ -87,7 +61,6 @@ public class WaypointTool : EditorWindow // är ett window
 						Undo.RecordObject(waypoint.transform, UNDO_STR_MOVEWAYPOINT);
 						waypoint.transform.position = Handles.PositionHandle(waypoint.transform.position, Quaternion.identity);
 						DrawWPSpheres(waypoint.transform, waypointCircleRadius);
-						//DrawWPPath(waypoint.transform.position, ); // Draw from start to previous waypoint
 						wpManager.spawnPos = waypoint.transform.position;
 					}
 				}

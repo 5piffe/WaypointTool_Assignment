@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 public class WaypointManager : MonoBehaviour
@@ -12,10 +10,7 @@ public class WaypointManager : MonoBehaviour
 	[System.NonSerialized] public Vector3 spawnPos;
 	private int spawnOffset = 1;
 
-	private void Start()
-	{
-		targetWaypoint = waypoints[targetWaypointIndex];
-	}
+	private void Start() => targetWaypoint = waypoints[targetWaypointIndex];
 
 	public void SetNextTarget()
 	{
@@ -37,14 +32,9 @@ public class WaypointManager : MonoBehaviour
 		waypoint.tag = "Waypoint";
 
 		if (waypoints.Count < 2)
-		{
-			waypoint.transform.position = transform.position;
-		}
+		{ waypoint.transform.position = transform.position; }
 		else
-		{
-			waypoint.transform.position = new Vector3(spawnPos.x, spawnPos.y, spawnPos.z + spawnOffset);
-			
-		}
+		{ waypoint.transform.position = new Vector3(spawnPos.x, spawnPos.y, spawnPos.z + spawnOffset); }
 
 		waypoint.transform.parent = transform;
 	}
@@ -59,13 +49,9 @@ public class WaypointManager : MonoBehaviour
 			spawnPos = new Vector3(spawnPos.x, spawnPos.y, spawnPos.z - spawnOffset);
 
 			if (targetWaypoint == null)
-			{
-				SetNextTarget();
-			}
+			{ SetNextTarget(); }
 		}
 		else
-		{
-			Debug.Log("There's no waypoint to remove from list");
-		}
+		{ Debug.Log("There's no waypoint to remove from list"); }
 	}
 }

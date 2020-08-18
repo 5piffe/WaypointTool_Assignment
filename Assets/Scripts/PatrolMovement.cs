@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PatrolMovement : MonoBehaviour
 {
 	[SerializeField] private float moveSpeed = 20f;
+	[SerializeField] private Color targetLinecolor = Color.green;
 	public bool continousLoop = true;
 
     private WaypointManager wpManager;
@@ -16,15 +15,10 @@ public class PatrolMovement : MonoBehaviour
 		wpManager = FindObjectOfType<WaypointManager>();
 
 		if (wpManager.waypoints.Count == 0)
-		{
-			wpManager.AddNewWaypoint();
-		}
+		{ wpManager.AddNewWaypoint(); }
 	}
 
-	private void Update()
-	{
-		Move();
-	}
+	private void Update() => Move();
 
 	private void Move()
 	{
@@ -35,30 +29,16 @@ public class PatrolMovement : MonoBehaviour
 		
 			if (distanceToTarget <= arrivedDistance)
 			{
-				if (wpManager.targetWaypointIndex == wpManager.waypoints.Count -1)
-				{
-					backwards = true;
-				}
+				if (wpManager.targetWaypointIndex == wpManager.waypoints.Count - 1)
+				{ backwards = true; }
 				else if (wpManager.targetWaypointIndex == 0)
-				{
-					backwards = false;
-				}
+				{ backwards = false; }
 
-				if (!continousLoop)
-				{
-					if (backwards)
-					{
-						wpManager.targetWaypointIndex--;
-					}
-					else
-					{
-						wpManager.targetWaypointIndex++;
-					}
-				}
+
+				if (!continousLoop && wpManager.waypoints.Count > 1)
+				{ wpManager.targetWaypointIndex += backwards ? -1 : 1; }
 				else
-				{
-					wpManager.targetWaypointIndex++;
-				}
+				{ wpManager.targetWaypointIndex++; }
 
 				wpManager.SetNextTarget();
 			}
@@ -71,7 +51,7 @@ public class PatrolMovement : MonoBehaviour
 	{
 		if (Application.isPlaying && wpManager.targetWaypoint != null)
 		{
-			Gizmos.color = Color.green;
+			Gizmos.color = targetLinecolor;
 			Gizmos.DrawLine(transform.position, wpManager.targetWaypoint.transform.position);
 		}
 	}
