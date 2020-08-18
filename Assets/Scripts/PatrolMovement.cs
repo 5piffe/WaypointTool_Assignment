@@ -4,13 +4,21 @@ using UnityEngine;
 
 public class PatrolMovement : MonoBehaviour
 {
-	public float moveSpeed = 20f;
+	[SerializeField] private float moveSpeed = 20f;
+	public bool continousLoop = true;
+
     private WaypointManager wpManager;
 	private float arrivedDistance = 0.1f;
+	private bool backwards = false;
 
 	private void Start()
 	{
 		wpManager = FindObjectOfType<WaypointManager>();
+
+		if (wpManager.waypoints.Count == 0)
+		{
+			wpManager.AddNewWaypoint();
+		}
 	}
 
 	private void Update()
@@ -27,7 +35,31 @@ public class PatrolMovement : MonoBehaviour
 		
 			if (distanceToTarget <= arrivedDistance)
 			{
-				wpManager.targetWaypointIndex++;
+				if (wpManager.targetWaypointIndex == wpManager.waypoints.Count -1)
+				{
+					backwards = true;
+				}
+				else if (wpManager.targetWaypointIndex == 0)
+				{
+					backwards = false;
+				}
+
+				if (!continousLoop)
+				{
+					if (backwards)
+					{
+						wpManager.targetWaypointIndex--;
+					}
+					else
+					{
+						wpManager.targetWaypointIndex++;
+					}
+				}
+				else
+				{
+					wpManager.targetWaypointIndex++;
+				}
+
 				wpManager.SetNextTarget();
 			}
 

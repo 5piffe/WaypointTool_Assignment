@@ -19,7 +19,6 @@ public class WaypointManager : MonoBehaviour
 
 	public void SetNextTarget()
 	{
-		// Traverse through the list, loop, make just the mirrored version for pingpong.
 		if (targetWaypointIndex < waypoints.Count)
 		{
 			targetWaypoint = waypoints[targetWaypointIndex];
@@ -31,22 +30,23 @@ public class WaypointManager : MonoBehaviour
 		}
 	}
 
-	public void AddNewWaypoint(GameObject newWP)
+	public void AddNewWaypoint()
 	{
-		waypoints.Add(newWP);
-		newWP.tag = "Waypoint";
+		GameObject waypoint = new GameObject($"wp: {waypoints.Count + 1}");
+		waypoints.Add(waypoint);
+		waypoint.tag = "Waypoint";
 
 		if (waypoints.Count < 2)
 		{
-			newWP.transform.position = transform.position;
+			waypoint.transform.position = transform.position;
 		}
 		else
 		{
-			newWP.transform.position = new Vector3(spawnPos.x, spawnPos.y, spawnPos.z + spawnOffset);
+			waypoint.transform.position = new Vector3(spawnPos.x, spawnPos.y, spawnPos.z + spawnOffset);
 			
 		}
 
-		newWP.transform.parent = transform;
+		waypoint.transform.parent = transform;
 	}
 
 	public void RemoveLastWaypoint()

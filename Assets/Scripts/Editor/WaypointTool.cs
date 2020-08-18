@@ -6,20 +6,18 @@ using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.Assertions.Must;
 
-/* 
- * TODO: Draw lines to previous point, pingpong
- */
-
 
 public class WaypointTool : EditorWindow // är ett window
 {
 	private WaypointManager wpManager;
+	private PatrolMovement traverseObject;
 	private const string UNDO_STR_MOVEWAYPOINT = "move waypoint";
 	private float waypointCircleRadius = 0.3f;
 	private float minCircleRadius = 0.1f;
 	private float maxCircleRadius = 5f;
 	private bool hideWaypoints = false;
 	private Color wpColor = Color.cyan;
+	private Color pathColor = Color.yellow;
 
 
     [MenuItem("Tools/Waypoint Tool")]
@@ -42,11 +40,11 @@ public class WaypointTool : EditorWindow // är ett window
 	{
 		GUILayout.Label("[Add or remove waypoints]");
 		wpManager = FindObjectOfType<WaypointManager>();
+		traverseObject = FindObjectOfType<PatrolMovement>();
 		
 		if (GUILayout.Button("Add +"))
 		{
-			GameObject waypoint = new GameObject($"wp: {wpManager.waypoints.Count + 1}");
-			wpManager.AddNewWaypoint(waypoint);
+			wpManager.AddNewWaypoint();
 		}
 
 		if (GUILayout.Button("Remove -"))
@@ -57,6 +55,7 @@ public class WaypointTool : EditorWindow // är ett window
 		GUILayout.Label("\n[Other settings]");
 		wpColor = EditorGUILayout.ColorField("Circle color", wpColor);
 		waypointCircleRadius = EditorGUILayout.Slider("Circle radius", waypointCircleRadius, minCircleRadius, maxCircleRadius);
+		pathColor = EditorGUILayout.ColorField("Path color", pathColor);
 		hideWaypoints = EditorGUILayout.Toggle("Hide waypoints", hideWaypoints);
 
 	}
@@ -72,22 +71,37 @@ public class WaypointTool : EditorWindow // är ett window
 
 	private void DrawWaypoints()
 	{
-		if (wpManager.waypoints.Count > 0)
+		if (wpManager != null)
 		{
-			foreach (GameObject waypoint in wpManager.waypoints)
+			if (wpManager.waypoints.Count > 0)
 			{
-				if (waypoint == null)
+				foreach (GameObject waypoint in wpManager.waypoints)
 				{
-					wpManager.RemoveLastWaypoint();
-					Debug.Log("Could not draw handle, missing Waypoint object in scene - removing from list");
+					if (waypoint == null)
+					{
+						wpManager.RemoveLastWaypoint();
+						Debug.Log("Could not draw handle, missing Waypoint object in scene - removing from list");
+					}
+					else
+					{
+						Undo.RecordObject(waypoint.transform, UNDO_STR_MOVEWAYPOINT);
+						waypoint.transform.position = Handles.PositionHandle(waypoint.transform.position, Quaternion.identity);
+						DrawWPSpheres(waypoint.transform, waypointCircleRadius);
+						//DrawWPPath(waypoint.transform.position, ); // Draw from start to previous waypoint
+						wpManager.spawnPos = waypoint.transform.position;
+					}
 				}
-				else
+			}
+
+			for (int i = 0; i < wpManager.waypoints.Count; i++)
+			{
+				if (i < wpManager.waypoints.Count - 1)
 				{
-					Undo.RecordObject(waypoint.transform, UNDO_STR_MOVEWAYPOINT);
-					waypoint.transform.position = Handles.PositionHandle(waypoint.transform.position, Quaternion.identity);
-					DrawWPSpheres(waypoint.transform, waypointCircleRadius);
-					DrawWPPath(waypoint.transform.position, wpManager.waypoints[wpManager.targetWaypointIndex].transform.position); // Draw from start to previous waypoint
-					wpManager.spawnPos = waypoint.transform.position;
+					DrawWPPath(wpManager.waypoints[i].transform.position, wpManager.waypoints[i + 1].transform.position);
+				}
+				else if (i == wpManager.waypoints.Count -1 && traverseObject.continousLoop)
+				{
+					DrawWPPath(wpManager.waypoints[i].transform.position, wpManager.waypoints[0].transform.position);
 				}
 			}
 		}
@@ -97,11 +111,11 @@ public class WaypointTool : EditorWindow // är ett window
 	{
 		Handles.color = wpColor;
 		Handles.DrawWireDisc(center.position, Camera.current.transform.position, radius);
-
 	}
 
 	private void DrawWPPath(Vector3 start, Vector3 end)
 	{
-		Handles.DrawDottedLine(start, end, 6f); // TODO: variable
+		Handles.color = pathColor;
+		Handles.DrawDottedLine(start, end, 6f);
 	}
 }
